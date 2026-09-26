@@ -18,10 +18,8 @@
 
 ⚠️ 三句实话，先看完再动手：
    ① 助手跑在你自己电脑上，电脑关机或休眠它就不回消息。
-   ② 你发的内容会经过模型服务商，别发患者信息、身份证号这类东西。
-   ③ 微信扫码绑的是一个独立机器人账号，不会接管你的微信号。但这类自动化
-      腾讯条款不明确，存在账号被限制的真实风险，别用你最在乎的号。
-
+   ② 你发的内容会经过模型服务商，别发个人隐私、身份证号这类东西。
+   ③ 微信扫码绑的是一个独立机器人账号，不会接管你的微信号。
 
 【第 1 步 下载并解压】
 
@@ -29,12 +27,14 @@
 解压到一个纯英文路径，比如  D:\wxbot
 不要放桌面、不要有中文和空格，后面少一堆怪问题。
 
-解压完，文件夹里应该能看到 scripts 和 config 两个目录。
+解压完，文件夹里应该能看到 scripts 、config 两个目录，以及一个 微信助手.exe 。
+那个 exe 只有 5 KB，不含任何逻辑，作用就是找到同目录下的启动脚本并运行。
+它不写死任何路径，所以你解压到哪里它都能用。
 
 
 【第 2 步 解除 Windows 的下载封锁】
 
-从网上下的脚本，Windows 会偷偷锁掉。不解锁的话第 4 步会报"禁止运行脚本"。
+从网上下的脚本，Windows 会偷偷锁掉。不解锁的话后面会报"禁止运行脚本"。
 
 按 Win+R 输入 powershell 回车，逐条粘贴执行：
 
@@ -56,64 +56,69 @@
 改完保存。apiKey 那行写的是 "${ASSISTANT_API_KEY}"，不要动、不要填真值。
 
 
-【第 4 步 一键安装】
+【第 4 步 双击 微信助手.exe】
 
-在  D:\wxbot 文件夹的空白处，按住 Shift 点右键 → 「在此处打开 PowerShell 窗口」。
-粘贴：
+双击它，弹出一个黑色窗口，剩下的它自己做，你不用敲任何命令：
 
-    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install.ps1
+  ① 检查并安装需要的东西：Node → OpenClaw → 微信通道插件 → 下发配置 → 校验
+     这一步要下载，网络慢的话等两三分钟。窗口暂时不动是正常的，别关它。
+  ② 让你粘贴 API Key
+     粘贴时屏幕上什么都不显示，这是正常的（防偷看），贴完直接回车。
+  ③ 显示二维码
+     手机微信 → 右上角 + → 扫一扫 → 确认授权。这一步只能你本人做。
+  ④ 把自己装成常驻服务，然后跑一遍体检
 
-它会走 6 步：查 Node → 装 OpenClaw → 装微信通道插件 → 下发配置 → 校验 → 查密钥。
-中途要下载东西，网络慢的话等两三分钟是正常的。
-
-看到 Config valid 就是装好了。
-最后一行提示"还差密钥"是应该的，下一步就填。
-
-
-【第 5 步 录入密钥】
-
-    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\set-key.ps1
-
-它会让你粘贴 Key。粘贴时屏幕上什么都不显示，这是正常的（防偷看），
-贴完直接回车。看到"已写入"就成功。
+  ⚠️ 第一次双击可能被拦：
+     · Windows SmartScreen：点「更多信息」→「仍要运行」
+     · 360 / 电脑管家 可能直接隔离它（本地编译的无签名程序）
+       被删了就重新解压，或改用下面的「手动安装」，效果完全一样。
 
 
-【第 6 步 扫码】
+【第 5 步 验收】
 
-    openclaw channels login --channel openclaw-weixin
-
-窗口里会出现二维码。手机微信 → 右上角 + → 扫一扫 → 确认授权。
-这一步只能你本人做。
-
-
-【第 7 步 让它常驻（这步最容易漏）】
-
-    openclaw gateway install
-
-看到 Installed Scheduled Task 就成功了。
-
-⚠️ 千万别只跑 restart。服务从来没装过的话，restart 是空转、也不报错，
-   你会得到"配置全对、码也扫了，但它就是不理人"。
-
-
-【第 8 步 验收】
-
-    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\doctor.ps1
-
-九项全部 [OK] 就成了。然后打开手机微信，找到那个机器人，发一句「你好」。
+窗口最后会打一张体检表，九项都是 [OK] 就成了。
+然后打开手机微信，找到那个机器人，发一句「你好」。
 等几秒是正常的，期间微信会显示"正在输入"。
 
-可选：跑一次下面这条，桌面会多一个「微信助手.exe」，以后双击它就能自检+启动：
+以后不用管它，开机它就自己在跑。
+出问题就再双击一次 微信助手.exe，它会重新体检并告诉你第一条该修什么。
+
+
+════════ 手动安装（不想用 exe 的人走这条）════════
+
+在 D:\wxbot 空白处按 Shift + 右键 →「在此处打开 PowerShell 窗口」，依次执行：
+
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install.ps1
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\set-key.ps1
+    openclaw channels login --channel openclaw-weixin
+    openclaw gateway install
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\doctor.ps1
+
+⚠️ 最后那条 gateway install 千万别漏，也别只跑 restart。
+   服务从来没装过的话，restart 是空转、也不报错，
+   你会得到"配置全对、码也扫了，但它就是不理人"。
+
+想重新生成那个启动器（比如你改过项目结构）：
     powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-exe.ps1
 
 
 ════════════ 报错对照表 ════════════
 
+■ 双击 exe 后弹「Windows 已保护你的电脑」
+  这是 SmartScreen，不是病毒。点「更多信息」→「仍要运行」。
+
+■ 双击 exe 一闪就没，或被 360 / 电脑管家 删掉
+  无签名程序常被国产杀软隔离。重新解压一次并在杀软里选「允许」；
+  实在不行改用上面的「手动安装」，效果完全一样。
+
+■ 双击 exe 报「找不到 scripts\quickstart.ps1」
+  exe 被单独拷走了。它必须和 scripts 文件夹放在同一层，解压出来的文件夹别拆开。
+
 ■ 报「-File 形式参数的实际参数 scripts\xxx.ps1 不存在」
   你终端所在目录不对。先执行  cd D:\wxbot  再跑命令。
 
 ■ 报「无法加载文件，因为在此系统上禁止运行脚本」
-  第 2 步的 Unblock-File 没做，或者你漏了 -ExecutionPolicy Bypass 这一段。
+  「解除下载封锁」那步没做，或者你漏了 -ExecutionPolicy Bypass 这一段。
 
 ■ 报「openclaw 不是内部或外部命令」
   装完 OpenClaw 后终端没刷新环境变量。关掉窗口重新开一个再试。
@@ -127,19 +132,20 @@
       npm config set registry https://registry.npmmirror.com
 
 ■ 校验时出现  missing env var "ASSISTANT_API_KEY"
-  这不是错误，是提示你还没录密钥，去做第 5 步。
+  这不是错误，是提示你还没录密钥。继续走，到粘贴 Key 那一步填上就行。
   注意：它同时证明你的密钥没被写进配置文件，是好事。
 
-■ doctor 报 模型密钥 FAIL
-  Key 填错、过期、或没余额。去服务商后台看一眼，然后重跑第 5 步。
+■ 体检报 模型密钥 FAIL
+  Key 填错、过期、或没余额。去服务商后台看一眼，再双击 exe 重录一次。
 
-■ doctor 报 Bot 授权凭据 FAIL
-  你没扫过码，或扫码中途取消了。重做第 6 步。
+■ 体检报 Bot 授权凭据 FAIL
+  你没扫过码，或扫码中途取消了。双击 exe 重新扫一次。
 
-■ doctor 报 网关在运行 FAIL
-  重做第 7 步。这是最常见的"装完不理人"的原因。
+■ 体检报 网关在运行 FAIL
+  最常见的"装完不理人"原因。双击 exe 让它重装常驻服务；
+  手动方式则是  openclaw gateway install  （注意不是 restart）。
 
-■ doctor 报 微信通道已连 FAIL，且提到 config-only
+■ 体检报 微信通道已连 FAIL，且提到 config-only
   不是你扫码失败！是网关没起来。先修上一条。
 
 ■ 突然一小时完全不理人，之后自己恢复
@@ -150,9 +156,10 @@
   如果你改过脚本，把拼 JSON 的写法改成读文件。
 
 ■ 报「找不到 provider」或模型名不识别
-  第 3 步的 primary 格式必须是  名字/模型id ，两边要和上面定义完全对应。
+  「填模型信息」那步的 primary 格式必须是 名字/模型id ，
+  两边要和上面定义的 provider 名、模型 id 完全对应。
 
-■ 服务商返回 404，doctor 说"密钥状态无法自动验证"
+■ 服务商返回 404，体检说"密钥状态无法自动验证"
   有些接口不提供 /models 列表，属正常。直接在微信发一句话试试，能回就是好的。
 
 
@@ -166,4 +173,4 @@
 
 想让它查你的资料，就直接问："看下 knowledge 里关于 XX 的那篇，给我总结三点"
 
-日常出问题，先跑 doctor.ps1，它只会告诉你第一条该修什么，修完再跑一次。
+日常出问题，先双击 微信助手.exe，它会告诉你第一条该修什么，修完再跑一次。

@@ -9,8 +9,9 @@ workspace/memory/**
 workspace/knowledge/**
 !workspace/knowledge/.gitkeep
 
-# 桌面启动器的编译产物
+# 编译产物：只保留仓库根目录那个可移植启动器
 *.exe
+!微信助手.exe
 
 # 工具/系统噪声
 node_modules/
