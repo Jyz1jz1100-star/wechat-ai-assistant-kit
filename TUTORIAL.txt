@@ -1,0 +1,169 @@
+微信 AI 助手 · 保姆级安装教程
+（从下载压缩包开始，全程复制粘贴即可）
+
+适用：Windows 10 / 11。不需要服务器、不需要域名、不需要备案。
+仓库：https://github.com/Jyz1jz1100-star/wechat-ai-assistant-kit
+
+
+【开始前，先准备两样东西】
+
+1. Node.js
+   打开 https://nodejs.org/zh-cn ，点左边那个 LTS 大按钮下载安装，一路下一步。
+   装完按 Win+R 输入 powershell 回车，敲 node -v 回车，出现 v22 或更高就对了。
+
+2. 一个大模型的 API Key
+   教程以 DeepSeek 为例：https://platform.deepseek.com 注册、充值 10 块钱、
+   在「API Keys」里新建一个，复制备用。
+   用 OpenRouter、通义、Kimi、智谱的都行，只要它是 OpenAI 兼容接口。
+
+⚠️ 三句实话，先看完再动手：
+   ① 助手跑在你自己电脑上，电脑关机或休眠它就不回消息。
+   ② 你发的内容会经过模型服务商，别发患者信息、身份证号这类东西。
+   ③ 微信扫码绑的是一个独立机器人账号，不会接管你的微信号。但这类自动化
+      腾讯条款不明确，存在账号被限制的真实风险，别用你最在乎的号。
+
+
+【第 1 步 下载并解压】
+
+仓库页面点绿色 Code 按钮 → Download ZIP。
+解压到一个纯英文路径，比如  D:\wxbot
+不要放桌面、不要有中文和空格，后面少一堆怪问题。
+
+解压完，文件夹里应该能看到 scripts 和 config 两个目录。
+
+
+【第 2 步 解除 Windows 的下载封锁】
+
+从网上下的脚本，Windows 会偷偷锁掉。不解锁的话第 4 步会报"禁止运行脚本"。
+
+按 Win+R 输入 powershell 回车，逐条粘贴执行：
+
+    cd D:\wxbot
+    powershell -NoProfile -Command "Get-ChildItem -Recurse -Include *.ps1,*.mjs | Unblock-File"
+
+没报错就是成功了。
+
+
+【第 3 步 填你自己的模型信息】
+
+用记事本打开  config\openclaw.patch.json ，只改三个地方：
+
+    "myprovider"                    ← 随便起个名字，比如 myapi
+    "baseUrl": "https://api.deepseek.com/v1"     ← 换成你服务商的地址
+    "id": "deepseek-v4.1-flash"     ← 换成服务商给的模型全名
+    "primary": "myprovider/deepseek-v4.1-flash"  ← 格式必须是 名字/模型id
+
+改完保存。apiKey 那行写的是 "${ASSISTANT_API_KEY}"，不要动、不要填真值。
+
+
+【第 4 步 一键安装】
+
+在  D:\wxbot 文件夹的空白处，按住 Shift 点右键 → 「在此处打开 PowerShell 窗口」。
+粘贴：
+
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install.ps1
+
+它会走 6 步：查 Node → 装 OpenClaw → 装微信通道插件 → 下发配置 → 校验 → 查密钥。
+中途要下载东西，网络慢的话等两三分钟是正常的。
+
+看到 Config valid 就是装好了。
+最后一行提示"还差密钥"是应该的，下一步就填。
+
+
+【第 5 步 录入密钥】
+
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\set-key.ps1
+
+它会让你粘贴 Key。粘贴时屏幕上什么都不显示，这是正常的（防偷看），
+贴完直接回车。看到"已写入"就成功。
+
+
+【第 6 步 扫码】
+
+    openclaw channels login --channel openclaw-weixin
+
+窗口里会出现二维码。手机微信 → 右上角 + → 扫一扫 → 确认授权。
+这一步只能你本人做。
+
+
+【第 7 步 让它常驻（这步最容易漏）】
+
+    openclaw gateway install
+
+看到 Installed Scheduled Task 就成功了。
+
+⚠️ 千万别只跑 restart。服务从来没装过的话，restart 是空转、也不报错，
+   你会得到"配置全对、码也扫了，但它就是不理人"。
+
+
+【第 8 步 验收】
+
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\doctor.ps1
+
+九项全部 [OK] 就成了。然后打开手机微信，找到那个机器人，发一句「你好」。
+等几秒是正常的，期间微信会显示"正在输入"。
+
+可选：跑一次下面这条，桌面会多一个「微信助手.exe」，以后双击它就能自检+启动：
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-exe.ps1
+
+
+════════════ 报错对照表 ════════════
+
+■ 报「-File 形式参数的实际参数 scripts\xxx.ps1 不存在」
+  你终端所在目录不对。先执行  cd D:\wxbot  再跑命令。
+
+■ 报「无法加载文件，因为在此系统上禁止运行脚本」
+  第 2 步的 Unblock-File 没做，或者你漏了 -ExecutionPolicy Bypass 这一段。
+
+■ 报「openclaw 不是内部或外部命令」
+  装完 OpenClaw 后终端没刷新环境变量。关掉窗口重新开一个再试。
+  还不行就注销重登一次 Windows。
+
+■ 报「node 不是内部或外部命令」或版本低于 v22.13
+  Node 没装或太老。重装 LTS 版，装完新开终端再验证 node -v。
+
+■ 报「npm error code ENOENT」或下载超时
+  网络问题。挂代理，或者把 npm 源换成国内镜像：
+      npm config set registry https://registry.npmmirror.com
+
+■ 校验时出现  missing env var "ASSISTANT_API_KEY"
+  这不是错误，是提示你还没录密钥，去做第 5 步。
+  注意：它同时证明你的密钥没被写进配置文件，是好事。
+
+■ doctor 报 模型密钥 FAIL
+  Key 填错、过期、或没余额。去服务商后台看一眼，然后重跑第 5 步。
+
+■ doctor 报 Bot 授权凭据 FAIL
+  你没扫过码，或扫码中途取消了。重做第 6 步。
+
+■ doctor 报 网关在运行 FAIL
+  重做第 7 步。这是最常见的"装完不理人"的原因。
+
+■ doctor 报 微信通道已连 FAIL，且提到 config-only
+  不是你扫码失败！是网关没起来。先修上一条。
+
+■ 突然一小时完全不理人，之后自己恢复
+  被微信侧限流了。别连续重试发消息，等一小时自然好。
+
+■ 助手回复里中文变成问号或乱码
+  有脚本用命令行拼 JSON 导致的编码问题。重开终端、确保用 UTF-8 环境再试；
+  如果你改过脚本，把拼 JSON 的写法改成读文件。
+
+■ 报「找不到 provider」或模型名不识别
+  第 3 步的 primary 格式必须是  名字/模型id ，两边要和上面定义完全对应。
+
+■ 服务商返回 404，doctor 说"密钥状态无法自动验证"
+  有些接口不提供 /models 列表，属正常。直接在微信发一句话试试，能回就是好的。
+
+
+════════ 装好之后 ════════
+
+改说话风格：  workspace\SOUL.md
+改你的背景：  workspace\USER.md
+改行为边界：  workspace\AGENTS.md
+放你的资料：  workspace\knowledge\   （建议 .md 或 .txt，PDF 先转成文本）
+改完不用重启，下一句对话就生效。
+
+想让它查你的资料，就直接问："看下 knowledge 里关于 XX 的那篇，给我总结三点"
+
+日常出问题，先跑 doctor.ps1，它只会告诉你第一条该修什么，修完再跑一次。
