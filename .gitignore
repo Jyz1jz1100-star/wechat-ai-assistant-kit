@@ -1,0 +1,19 @@
+# 密钥永不入库。运行时的 .env 在 ~/.openclaw/ 下，也不该出现在这里。
+.env
+.env.*
+*.local
+
+# OpenClaw 自管的运行态与用户资料，不作为仓库产物
+workspace/memory/**
+!workspace/memory/.gitkeep
+workspace/knowledge/**
+!workspace/knowledge/.gitkeep
+
+# 桌面启动器的编译产物
+*.exe
+
+# 工具/系统噪声
+node_modules/
+*.log
+Thumbs.db
+Desktop.ini

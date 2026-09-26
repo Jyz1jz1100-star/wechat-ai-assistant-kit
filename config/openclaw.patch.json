@@ -1,0 +1,26 @@
+{
+  "agents": {
+    "defaults": {
+      "model": { "primary": "myprovider/deepseek-v4.1-flash" }
+    }
+  },
+  "models": {
+    "providers": {
+      "myprovider": {
+        "baseUrl": "https://api.deepseek.com/v1",
+        "apiKey": "${ASSISTANT_API_KEY}",
+        "api": "openai-completions",
+        "models": [
+          { "id": "deepseek-v4.1-flash", "name": "DeepSeek V4.1 Flash" }
+        ]
+      }
+    }
+  },
+  "channels": {
+    "openclaw-weixin": { "enabled": true }
+  },
+  "session": {
+    "dmScope": "per-account-channel-peer",
+    "reset": { "mode": "daily", "atHour": 4, "idleMinutes": 120 }
+  }
+}
